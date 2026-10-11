@@ -4,8 +4,7 @@
 
 - **The server records events, nothing else.** No stats are computed on the server. Scripts turn the raw events
   into stats later. Players only see two chat lines: "[MPStats] Recording this match's stats." when the first
-  round starts, and "[MPStats] Match stats recorded (5 rounds)." (", match cut short" when aborted) when the
-  mission ends.
+  round starts, and "[MPStats] Match stats recorded (5 rounds)." when the mission ends.
 - **Raw events are the source of truth.** Any stat thought of later can be computed from matches already
   recorded, so the event fields matter more than any list of stats.
 - **Skirmish and Battle (groupfight) only.** No TDM.

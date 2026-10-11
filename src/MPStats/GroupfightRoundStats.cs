@@ -8,9 +8,9 @@ namespace MPStats;
 // Groupfight (Battle): at the end of each round, everyone gets one chat line per player who spawned that round:
 //
 //   Round 3:
-//   Player1: d=65, td=21, HP=22
+//   Player1 | DMG: 65 | TeamDMG: 21 | HP: 22
 //
-// d = damage dealt to enemy players and bots, td = damage dealt to teammates (not counting yourself), HP = health
+// DMG = damage dealt to enemy players and bots, TeamDMG = damage dealt to teammates (not counting yourself), HP = health
 // left when the round ended (0 if dead or gone). Damage is the health actually removed (a 120 hit on a 40 HP enemy
 // counts 40), from the game's own per-hit callback; hits on horses don't count, a horse's charge counts for its
 // rider. Attackers are listed first, then defenders, each by damage dealt.
@@ -126,7 +126,7 @@ internal sealed class GroupfightRoundStats : MissionLogic
         {
             PlayerStats s = entry.Value;
             health.TryGetValue(entry.Key, out float hp);
-            lines.Add(s.Name + ": d=" + Round(s.Damage) + ", td=" + Round(s.TeamDamage) + ", HP=" + Round(hp));
+            lines.Add(s.Name + " | DMG: " + Round(s.Damage) + " | TeamDMG: " + Round(s.TeamDamage) + " | HP: " + Round(hp));
         }
         foreach (string line in lines)
         {

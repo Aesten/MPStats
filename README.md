@@ -9,12 +9,12 @@ At the end of each Battle round, everyone gets one chat line per player who spaw
 
 ```
 Round 3:
-Player1: d=65, td=21, HP=22
-Player2: d=40, td=0, HP=0
+Player1 | DMG: 65 | TeamDMG: 21 | HP: 22
+Player2 | DMG: 40 | TeamDMG: 0 | HP: 0
 ```
 
-- `d`: damage dealt to enemies (players and bots).
-- `td`: damage dealt to teammates (self-damage doesn't count).
+- `DMG`: damage dealt to enemies (players and bots).
+- `TeamDMG`: damage dealt to teammates (self-damage doesn't count).
 - `HP`: health left when the round ended (0 if dead or disconnected).
 
 Damage is the health actually removed (a 120 hit on a 40 HP enemy counts 40). Hits on horses don't count; a
@@ -47,4 +47,4 @@ scripts/deploy.sh                     # build and install on the server (aesten@
 scripts/deploy.sh --restart           # and restart it
 ```
 
-`run-server.sh` (in the sibling mpServerConfig repo) loads MPStats when it's installed (`--no-stats` to leave it out).
+`run-server.sh` (in the sibling mpServerConfig repo) loads MPStats by default (`--no-stats`, `--manager-only` or `--vanilla` leave it out).

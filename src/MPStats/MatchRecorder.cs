@@ -350,8 +350,7 @@ internal sealed class MatchRecorder : MissionLogic
         Flush();
         if (announce)
         {
-            ServerChat.Broadcast("[MPStats] Match stats recorded (" + _match.RoundsPlayed + " round" + (_match.RoundsPlayed == 1 ? "" : "s")
-                + (result == "complete" ? "" : ", match cut short") + ").");
+            ServerChat.Broadcast("[MPStats] Match stats recorded (" + _match.RoundsPlayed + " round" + (_match.RoundsPlayed == 1 ? "" : "s") + ").");
         }
     }
 
