@@ -37,7 +37,7 @@ Columns, how each way a match can end is recorded, and the safety rules: `docs/d
 
 ```
 [MPStats] Not recording yet: starts at the first round (warmup isn't recorded). Last match: 20261011-213000-mp_bnl_lighthouse: complete, 5 rounds, 1450 hits.
-[MPStats] Recording 20261011-221500-mp_bnl_quarry: round 3 in progress, 2 done | 6 players, 41 spawns, 812 hits, 230 shots, 37 deaths.
+[MPStats] Recording 20261011-221500-mp_bnl_quarry: round 3 in progress, 2 done | 6 players, 41 spawns, 812 hits, 230 shots, 37 deaths (+2 horses).
 [MPStats] Not recording: TeamDeathmatch isn't recorded (Skirmish and Battle only).
 [MPStats] Recording stopped after an error (see the server log).
 ```

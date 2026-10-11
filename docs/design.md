@@ -48,7 +48,7 @@ Times are UTC (`2026-10-11T21:30:05.123`).
 | `game_type` | `Skirmish` / `Battle` |
 | `map`, `culture1`, `culture2` | attackers' and defenders' factions |
 | `start`, `end` | first round start; last round end (empty until the match closes) |
-| `rounds_played`, `round_total` | |
+| `rounds_played`, `round_total` | finished rounds (an aborted round isn't counted; it still has its row in `rounds.csv`), and the configured total |
 | `result` | `complete` (the game ended the match: all rounds, a team out of reach, or a team left), `aborted` (ended by an admin or MPManager: !setmap, !resetmap, !mode, !warmup, standby), `error` (the recorder hit an error and stopped; logged); empty if the server stopped mid-match |
 | `dropped` | batches (about a second of events each) lost because the writer fell behind; normally 0 |
 | `server` | server name |
@@ -72,8 +72,7 @@ Written when the first round starts and rewritten when the match closes.
 | `wiped` | `SideDepleted` | the other side has nobody alive |
 | `morale` | `GameModeSpecificEnded` | a side's morale bar filled up (flags) |
 | `time` | `RoundTimeEnded` | time ran out: the side ahead on morale wins, `none` if even |
-
-A round cut short by an admin (see below) is recorded as `time`.
+| `aborted` | (ours) | the mission was ended during the round (see below); no winner |
 
 ### spawns.csv: one row per life
 
@@ -133,18 +132,21 @@ MPManager's `MissionFlow.Restart` calls). The map time limit doesn't apply when 
 | Warmup, `!endwarmup`, `!ready`, a cancelled countdown | nothing: no round has started |
 | Round ends normally | round row with winner and reason |
 | Last round, a team out of reach, or a team left | last round row, then `result` = `complete` |
-| `!setmap` / `!resetmap` / `!mode` / `!warmup` / standby during a round | that round ends as `time`, `result` = `aborted` |
+| `!setmap` / `!resetmap` / `!mode` / `!warmup` / standby during a round | that round's row has `end_reason` = `aborted`, `result` = `aborted` |
 | The same between rounds (end screen of a round, next preparation) | `result` = `aborted`; rounds already recorded stay |
 | Player leaves mid-round | death row with `state` = `left`; their earlier rows stay |
 | Player rejoins | same `player`, a new spawn |
 | Server crash or `mpm stop` | rows up to the last second are on disk; `match.csv` has no end or result |
 
-**Nothing left dangling.** `MissionFlow.Restart` sets the mission timer to 0 to skip the end screen, and the round
-controller shares that timer: a round in progress sees its time as over and ends through the normal round-end
-event (`time`, winner by morale), so every started round gets its row. When the mission closes, the recorder
-writes `match.csv` with its result, flushes and closes the files, whatever state the round was in; a mission
-closing without a round end event (e.g. between rounds) only closes the match. The agents removed when the next
-round resets the mission are not deaths: nothing is recorded between a round's end and the next round's start.
+**Nothing left dangling.** Every way a mission ends goes through `MissionLobbyComponent.SetStateEndingAsServer`
+(the round controller at the match's end, MPManager's `MissionFlow.Restart` otherwise), which raises
+`OnPostMatchEnded`. The recorder closes the match on that event: the round in progress, if any, gets its row as
+`aborted` (no winner), `match.csv` gets its end and result, the files are flushed and closed, and the chat line
+goes out while players are still connected. It can't wait for the round controller: MPManager zeroes the mission
+timer to skip the end screen, and the mission can close within the same tick, before the controller ends the
+round (seen with `!mode gf` mid-round). The mission's end is a last fallback that closes whatever is still open.
+The agents removed when the next round resets the mission are not deaths: nothing is recorded between a round's
+end and the next round's start.
 
 **No harm to the server:**
 

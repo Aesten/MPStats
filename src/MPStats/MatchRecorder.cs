@@ -15,9 +15,10 @@ namespace MPStats;
 // round end. Warmup runs no rounds, so it records nothing, and a mission that never leaves warmup has no match.
 // The match opens at the first round and closes when the mission ends: "complete" when the game ended it (the
 // round controller's match end), "aborted" when an admin or MPManager did (!setmap, !resetmap, !mode, !warmup,
-// standby). A round cut short that way still gets its row: MPManager zeroes the mission timer, which the round
-// controller shares, so the controller ends the round as timed out (earlier in the same tick: its
-// OnPreDisplayMissionTick runs before our OnMissionTick).
+// standby). Both go through MissionLobbyComponent.SetStateEndingAsServer, whose OnPostMatchEnded event closes the
+// match right there, while players are still connected to get the chat line (the mission itself can close within
+// the same tick). A round still in progress then gets its row as "aborted", without a winner: the round controller
+// would end it as a time-out later, or not at all if the mission closes first.
 //
 // On the main thread, events only append structs to lists; once a second the lists go to StatsWriter. Agents are
 // only touched while the game hands them to us (active), and are remembered by reference only. An error turns
@@ -46,7 +47,8 @@ internal sealed class MatchRecorder : MissionLogic
     // the damage dealt and whether it was blocked).
     private string _hitWeapon;
     // Counts for !stats.
-    private int _spawnCount, _hitCount, _shotCount, _deathCount;
+    private int _spawnCount, _hitCount, _shotCount, _deathCount, _horseDeathCount;
+    private bool _lastRoundAborted;
 
     // The recorder of the current mission (null outside Skirmish and Battle); for !stats.
     public static MatchRecorder Current { get; private set; }
@@ -70,6 +72,7 @@ internal sealed class MatchRecorder : MissionLogic
         _rounds.OnRoundStarted += OnRoundStarted;
         _rounds.OnPreparationEnded += OnPreparationEnded;
         _rounds.OnRoundEnding += OnRoundEnding;
+        _lobby.OnPostMatchEnded += OnMissionEnding;
     }
 
     protected override void OnEndMission()
@@ -83,6 +86,10 @@ internal sealed class MatchRecorder : MissionLogic
             _rounds.OnRoundStarted -= OnRoundStarted;
             _rounds.OnPreparationEnded -= OnPreparationEnded;
             _rounds.OnRoundEnding -= OnRoundEnding;
+        }
+        if (_lobby != null)
+        {
+            _lobby.OnPostMatchEnded -= OnMissionEnding;
         }
         // Normally closed when the mission started ending; this catches a mission closed some other way.
         if (_match != null && !_closed)
@@ -133,6 +140,29 @@ internal sealed class MatchRecorder : MissionLogic
 
     private void OnRoundEnding()
     {
+        EndRound(aborted: false);
+    }
+
+    // The mission starts ending (SetStateEndingAsServer): the game ended the match, or an admin or MPManager did.
+    private void OnMissionEnding()
+    {
+        if (_match == null || _closed || _failed)
+        {
+            return;
+        }
+        try
+        {
+            Close(_rounds.IsMatchEnding ? "complete" : "aborted", announce: true);
+        }
+        catch (Exception e)
+        {
+            Fail(e);
+        }
+    }
+
+    // aborted: the mission is ending in the middle of the round; recorded without a winner.
+    private void EndRound(bool aborted)
+    {
         try
         {
             if (!_recording)
@@ -152,13 +182,18 @@ internal sealed class MatchRecorder : MissionLogic
                 Start = _roundStart,
                 FightStart = _fightStart,
                 End = DateTime.UtcNow,
-                Winner = _rounds.RoundWinner,
-                Reason = _rounds.RoundEndReason,
+                Aborted = aborted,
+                Winner = aborted ? BattleSideEnum.None : _rounds.RoundWinner,
+                Reason = aborted ? RoundEndReason.Invalid : _rounds.RoundEndReason,
                 Morale = morale,
                 AttackerAlive = AliveHumans(Mission.AttackerTeam),
                 DefenderAlive = AliveHumans(Mission.DefenderTeam),
             });
-            _match.RoundsPlayed++;
+            if (!aborted)
+            {
+                _match.RoundsPlayed++;
+            }
+            _lastRoundAborted = aborted;
             Flush();
         }
         catch (Exception e)
@@ -312,7 +347,15 @@ internal sealed class MatchRecorder : MissionLogic
         {
             Agent killer = affectorAgent != null && affectorAgent.IsMount ? affectorAgent.RiderAgent : affectorAgent;
             bool horseVictim = affectedAgent.IsMount;
-            _deathCount++;
+            // Counted like the scoreboard: players killed (not leaving), horses apart.
+            if (affectedAgent.IsMount)
+            {
+                _horseDeathCount++;
+            }
+            else if (agentState != AgentState.Deleted)
+            {
+                _deathCount++;
+            }
             _batch.Deaths.Add(new DeathRow
             {
                 Time = DateTime.UtcNow,
@@ -357,10 +400,9 @@ internal sealed class MatchRecorder : MissionLogic
 
     private void Close(string result, bool announce)
     {
-        // The round controller normally ends a cut-short round itself first (see the top); if not, end it here.
         if (_recording)
         {
-            OnRoundEnding();
+            EndRound(aborted: true);
         }
         _closed = true;
         _recording = false;
@@ -368,7 +410,8 @@ internal sealed class MatchRecorder : MissionLogic
         _match.Result = result;
         _batch.Close = true;
         Flush();
-        LastMatch = _match.Id + ": " + result + ", " + Rounds(_match.RoundsPlayed) + ", " + _hitCount + " hits";
+        LastMatch = _match.Id + ": " + result + ", " + Rounds(_match.RoundsPlayed) + (_lastRoundAborted ? " + round " + _round + " cut short" : "")
+            + ", " + _hitCount + " hits";
         if (announce)
         {
             ServerChat.Broadcast("[MPStats] Match stats recorded (" + Rounds(_match.RoundsPlayed) + ").");
@@ -431,6 +474,7 @@ internal sealed class MatchRecorder : MissionLogic
         string round = _recording ? "round " + _round + " in progress, " + _match.RoundsPlayed + " done" : Rounds(_match.RoundsPlayed) + " done, between rounds";
         return "Recording " + _match.Id + ": " + round + " | " + _playerIds.Count + " players, " + _spawnCount + " spawns, "
             + _hitCount + " hits, " + _shotCount + " shots, " + _deathCount + " deaths"
+            + (_horseDeathCount > 0 ? " (+" + _horseDeathCount + " horse" + (_horseDeathCount == 1 ? "" : "s") + ")" : "")
             + (_match.DroppedBatches > 0 ? " | " + _match.DroppedBatches + " batches dropped (writer behind)" : "") + ".";
     }
 

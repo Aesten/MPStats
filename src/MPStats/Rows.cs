@@ -38,7 +38,7 @@ internal sealed class MatchInfo
     public int RoundTotal;
     public DateTime Start;
     public DateTime? End;
-    public int RoundsPlayed;
+    public int RoundsPlayed; // finished rounds (a round cut short by the mission ending isn't counted)
     public string Result = "";
     public int DroppedBatches;
 }
@@ -53,6 +53,7 @@ internal struct RoundRow
     public int Round;
     public DateTime Start, End;
     public DateTime? FightStart;
+    public bool Aborted;
     public BattleSideEnum Winner;
     public RoundEndReason Reason;
     public float? Morale;

@@ -105,7 +105,7 @@ internal static class StatsWriter
         foreach (RoundRow r in batch.Rounds)
         {
             line.Clear().Append(r.Round).Append(',').Append(Time(r.Start)).Append(',').Append(r.FightStart.HasValue ? Time(r.FightStart.Value) : "")
-                .Append(',').Append(Time(r.End)).Append(',').Append(Side(r.Winner)).Append(',').Append(Reason(r.Reason))
+                .Append(',').Append(Time(r.End)).Append(',').Append(Side(r.Winner)).Append(',').Append(r.Aborted ? "aborted" : Reason(r.Reason))
                 .Append(',').Append(r.Morale.HasValue ? r.Morale.Value.ToString("0.###", CultureInfo.InvariantCulture) : "")
                 .Append(',').Append(r.AttackerAlive).Append(',').Append(r.DefenderAlive);
             files.Rounds.WriteLine(line.ToString());
