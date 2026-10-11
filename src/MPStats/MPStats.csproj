@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The game assemblies target netstandard2.0; the Dedicated Server hosts them on .NET 6. -->
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <AssemblyName>MPStats</AssemblyName>
+    <RootNamespace>MPStats</RootNamespace>
+
+    <!-- Dedicated Server install to compile against. Override with: dotnet build -p:DSDir="..." -->
+    <DSDir Condition="'$(DSDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Mount &amp; Blade II Dedicated Server</DSDir>
+    <DSBin>$(DSDir)\bin\Win64_Shipping_Server</DSBin>
+
+    <!-- Build straight into the module layout the server expects. -->
+    <ModuleDir>$(MSBuildThisFileDirectory)..\..\dist\Modules\MPStats\</ModuleDir>
+    <OutputPath>$(ModuleDir)bin\Win64_Shipping_Server\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="$(DSBin)\TaleWorlds.Core.dll" Private="false" />
+    <Reference Include="$(DSBin)\TaleWorlds.DotNet.dll" Private="false" />
+    <Reference Include="$(DSBin)\TaleWorlds.Engine.dll" Private="false" />
+    <Reference Include="$(DSBin)\TaleWorlds.Library.dll" Private="false" />
+    <Reference Include="$(DSBin)\TaleWorlds.Localization.dll" Private="false" />
+    <Reference Include="$(DSBin)\TaleWorlds.ModuleManager.dll" Private="false" />
+    <Reference Include="$(DSBin)\TaleWorlds.MountAndBlade.dll" Private="false" />
+    <Reference Include="$(DSBin)\TaleWorlds.MountAndBlade.Multiplayer.dll" Private="false" />
+    <Reference Include="$(DSBin)\TaleWorlds.ObjectSystem.dll" Private="false" />
+  </ItemGroup>
+
+  <!-- The server loads module DLLs from bin/<name of its working directory>, which is
+       Linux64_Shipping_Server on Linux and Win64_Shipping_Server on Windows. Ship both. -->
+  <Target Name="AssembleModule" AfterTargets="Build">
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\..\module\SubModule.xml" DestinationFolder="$(ModuleDir)" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll;$(OutputPath)$(AssemblyName).pdb" DestinationFolder="$(ModuleDir)bin\Linux64_Shipping_Server\" />
+  </Target>
+
+</Project>

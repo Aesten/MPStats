@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Module>
+  <Name value="MPStats"/>
+  <Id value="MPStats"/>
+  <Version value="v0.1.0"/>
+  <DefaultModule value="false"/>
+  <!-- "Server": not advertised to clients, so they join without installing anything. -->
+  <ModuleCategory value="Server"/>
+  <ModuleType value="Community"/>
+  <DependedModules>
+    <DependedModule Id="Native" DependentVersion="v1.4.8" Optional="false"/>
+    <DependedModule Id="Multiplayer" DependentVersion="v1.4.8" Optional="false"/>
+  </DependedModules>
+  <SubModules>
+    <SubModule>
+      <Name value="MPStats"/>
+      <DLLName value="MPStats.dll"/>
+      <SubModuleClassType value="MPStats.MPStatsSubModule"/>
+      <Tags>
+        <!-- "all": load on any dedicated server type, never on a game client. -->
+        <Tag key="DedicatedServerType" value="all"/>
+      </Tags>
+    </SubModule>
+  </SubModules>
+</Module>
