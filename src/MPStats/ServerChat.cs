@@ -7,23 +7,28 @@ namespace MPStats;
 // from inside the server's packet handler crashes it.
 internal static class ServerChat
 {
-    // To everyone, and to the log.
+    public static void Send(NetworkCommunicator peer, string text)
+    {
+        if (peer.IsServerPeer || !peer.IsSynchronized)
+        {
+            return;
+        }
+        GameNetwork.BeginModuleEventAsServer(peer);
+        GameNetwork.WriteMessage(new ServerMessage(text));
+        GameNetwork.EndModuleEventAsServer();
+    }
+
+    // To everyone. Not to the server log: the round stats would add a line per player per round, and the match
+    // records hold the same data.
     public static void Broadcast(string text)
     {
-        MPStatsSubModule.Log(text);
         if (!GameNetwork.NetworkPeersValid)
         {
             return;
         }
         foreach (NetworkCommunicator peer in GameNetwork.NetworkPeers)
         {
-            if (peer.IsServerPeer || !peer.IsSynchronized)
-            {
-                continue;
-            }
-            GameNetwork.BeginModuleEventAsServer(peer);
-            GameNetwork.WriteMessage(new ServerMessage(text));
-            GameNetwork.EndModuleEventAsServer();
+            Send(peer, text);
         }
     }
 }

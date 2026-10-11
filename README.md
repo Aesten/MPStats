@@ -19,7 +19,7 @@ Player2 | DMG: 40 | TeamDMG: 0 | HP: 0
 
 Damage is the health actually removed (a 120 hit on a 40 HP enemy counts 40). Hits on horses don't count; a
 horse's charge counts for its rider. Attackers are listed first, then defenders, each by damage dealt. The lines
-also go to the server log (`[MPStats]`). Only Battle missions get the tracker; other modes are untouched.
+are only sent to chat, not to the server log. Only Battle missions get the tracker; other modes are untouched.
 
 ## Match records (Skirmish and Battle)
 
@@ -30,6 +30,21 @@ server; scripts compute them from the records later, and the records are meant t
 Players see one chat line when recording starts (first round) and one when the match's stats are saved.
 
 Columns, how each way a match can end is recorded, and the safety rules: `docs/design.md`.
+
+## !stats
+
+`!stats` (or `!st`), open to everyone, answers privately with what MPStats is doing:
+
+```
+[MPStats] Not recording yet: starts at the first round (warmup isn't recorded). Last match: 20261011-213000-mp_bnl_lighthouse: complete, 5 rounds, 1450 hits.
+[MPStats] Recording 20261011-221500-mp_bnl_quarry: round 3 in progress, 2 done | 6 players, 41 spawns, 812 hits, 230 shots, 37 deaths.
+[MPStats] Not recording: TeamDeathmatch isn't recorded (Skirmish and Battle only).
+[MPStats] Recording stopped after an error (see the server log).
+```
+
+With MPManager on the server it's routed through it (`MPManagerLink.cs`, as in mpBalancer): hidden from chat,
+listed in `!help`, and `mpm cmd stats` works from the server. Without MPManager, MPStats hooks chat itself (the
+command then still shows in chat).
 
 ## Performance
 

@@ -45,9 +45,21 @@ internal sealed class MatchRecorder : MissionLogic
     // The weapon of the hit being reported: OnAgentHit (which has the item) runs just before OnScoreHit (which has
     // the damage dealt and whether it was blocked).
     private string _hitWeapon;
+    // Counts for !stats.
+    private int _spawnCount, _hitCount, _shotCount, _deathCount;
+
+    // The recorder of the current mission (null outside Skirmish and Battle); for !stats.
+    public static MatchRecorder Current { get; private set; }
+
+    // "<match id>: complete, 5 rounds, 1450 hits": the last match closed on this server run; for !stats.
+    public static string LastMatch { get; private set; }
+
+    // Whether this mission's match has started (first round), recording or already closed.
+    public bool HasMatch => _match != null;
 
     public override void AfterStart()
     {
+        Current = this;
         _rounds = Mission.GetMissionBehavior<MultiplayerRoundController>();
         _lobby = Mission.GetMissionBehavior<MissionLobbyComponent>();
         if (_rounds == null || _lobby == null)
@@ -62,6 +74,10 @@ internal sealed class MatchRecorder : MissionLogic
 
     protected override void OnEndMission()
     {
+        if (Current == this)
+        {
+            Current = null;
+        }
         if (_rounds != null)
         {
             _rounds.OnRoundStarted -= OnRoundStarted;
@@ -189,6 +205,7 @@ internal sealed class MatchRecorder : MissionLogic
             {
                 _horseOwners[agent.MountAgent] = spawn;
             }
+            _spawnCount++;
             _batch.Spawns.Add(new SpawnRow
             {
                 Spawn = spawn,
@@ -223,6 +240,7 @@ internal sealed class MatchRecorder : MissionLogic
             Agent attacker = affectorAgent != null && affectorAgent.IsMount ? affectorAgent.RiderAgent : affectorAgent;
             bool horseVictim = affectedAgent.IsMount;
             Team victimTeam = horseVictim ? affectedAgent.RiderAgent?.Team ?? affectedAgent.Team : affectedAgent.Team;
+            _hitCount++;
             _batch.Hits.Add(new HitRow
             {
                 Time = DateTime.UtcNow,
@@ -266,6 +284,7 @@ internal sealed class MatchRecorder : MissionLogic
         try
         {
             MissionWeapon weapon = weaponIndex == EquipmentIndex.None ? MissionWeapon.Invalid : shooterAgent.Equipment[weaponIndex];
+            _shotCount++;
             _batch.Shots.Add(new ShotRow
             {
                 Time = DateTime.UtcNow,
@@ -293,6 +312,7 @@ internal sealed class MatchRecorder : MissionLogic
         {
             Agent killer = affectorAgent != null && affectorAgent.IsMount ? affectorAgent.RiderAgent : affectorAgent;
             bool horseVictim = affectedAgent.IsMount;
+            _deathCount++;
             _batch.Deaths.Add(new DeathRow
             {
                 Time = DateTime.UtcNow,
@@ -348,9 +368,10 @@ internal sealed class MatchRecorder : MissionLogic
         _match.Result = result;
         _batch.Close = true;
         Flush();
+        LastMatch = _match.Id + ": " + result + ", " + Rounds(_match.RoundsPlayed) + ", " + _hitCount + " hits";
         if (announce)
         {
-            ServerChat.Broadcast("[MPStats] Match stats recorded (" + _match.RoundsPlayed + " round" + (_match.RoundsPlayed == 1 ? "" : "s") + ").");
+            ServerChat.Broadcast("[MPStats] Match stats recorded (" + Rounds(_match.RoundsPlayed) + ").");
         }
     }
 
@@ -391,6 +412,29 @@ internal sealed class MatchRecorder : MissionLogic
             }
         }
     }
+
+    // One line for !stats.
+    public string Status()
+    {
+        if (_failed)
+        {
+            return "Recording stopped after an error (see the server log).";
+        }
+        if (_match == null)
+        {
+            return "Not recording yet: starts at the first round (warmup isn't recorded).";
+        }
+        if (_closed)
+        {
+            return "Match recorded: " + LastMatch + ".";
+        }
+        string round = _recording ? "round " + _round + " in progress, " + _match.RoundsPlayed + " done" : Rounds(_match.RoundsPlayed) + " done, between rounds";
+        return "Recording " + _match.Id + ": " + round + " | " + _playerIds.Count + " players, " + _spawnCount + " spawns, "
+            + _hitCount + " hits, " + _shotCount + " shots, " + _deathCount + " deaths"
+            + (_match.DroppedBatches > 0 ? " | " + _match.DroppedBatches + " batches dropped (writer behind)" : "") + ".";
+    }
+
+    private static string Rounds(int count) => count + " round" + (count == 1 ? "" : "s");
 
     private int SpawnOf(Agent agent) => agent != null && _spawns.TryGetValue(agent, out int spawn) ? spawn : 0;
 

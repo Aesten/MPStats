@@ -9,6 +9,16 @@ public class MPStatsSubModule : MBSubModuleBase
     {
         base.OnSubModuleLoad();
         Log("Loaded.");
+        StatsCommand.RouteThroughMPManager(); // so !help lists !stats from the start, not from the first mission
+    }
+
+    protected override void OnApplicationTick(float dt)
+    {
+        base.OnApplicationTick(dt);
+        if (GameNetwork.IsDedicatedServer)
+        {
+            StatsCommand.ProcessPending();
+        }
     }
 
     public override void OnMissionBehaviorInitialize(Mission mission)
@@ -18,6 +28,7 @@ public class MPStatsSubModule : MBSubModuleBase
         {
             return;
         }
+        StatsCommand.Attach();
         string gameType = MultiplayerOptions.OptionType.GameType.GetStrValue();
         if (gameType == "Skirmish" || gameType == "Battle")
         {
