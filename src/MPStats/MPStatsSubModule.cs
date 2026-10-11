@@ -14,7 +14,16 @@ public class MPStatsSubModule : MBSubModuleBase
     public override void OnMissionBehaviorInitialize(Mission mission)
     {
         base.OnMissionBehaviorInitialize(mission);
-        if (GameNetwork.IsDedicatedServer && MultiplayerOptions.OptionType.GameType.GetStrValue() == "Battle")
+        if (!GameNetwork.IsDedicatedServer)
+        {
+            return;
+        }
+        string gameType = MultiplayerOptions.OptionType.GameType.GetStrValue();
+        if (gameType == "Skirmish" || gameType == "Battle")
+        {
+            mission.AddMissionBehavior(new MatchRecorder());
+        }
+        if (gameType == "Battle")
         {
             mission.AddMissionBehavior(new GroupfightRoundStats());
         }

@@ -21,16 +21,23 @@ Damage is the health actually removed (a 120 hit on a 40 HP enemy counts 40). Hi
 horse's charge counts for its rider. Attackers are listed first, then defenders, each by damage dealt. The lines
 also go to the server log (`[MPStats]`). Only Battle missions get the tracker; other modes are untouched.
 
-## Skirmish: match records (planned)
+## Match records (Skirmish and Battle)
 
-Stats over a whole Skirmish game (one mission), saved as records. Not started; two existing stat trackers will
-show what data is needed.
+Every Skirmish and Battle match (one mission) is recorded as raw events: spawns, hits (damaging or blocked),
+missiles shot, deaths and rounds, one CSV per table in a folder per match (`~/bannerlord/stats/<start>-<map>/`
+on the server, `MPS_DATA_DIR`). Only real rounds count: warmup records nothing. No stats are computed on the
+server; scripts compute them from the records later, and the records are meant to be imported into a database.
+Players see one chat line when recording starts (first round) and one when the match's stats are saved.
+
+Columns, how each way a match can end is recorded, and the safety rules: `docs/design.md`.
 
 ## Performance
 
 Stats code runs on the server's main thread for every hit, so it follows mpManager's rules (`docs/roadmap.md`,
-"Performance"): per hit only lookups and additions, text built and sent at round end, and only agents still
-in the mission's active list are read (on the Linux server a null or freed access is a native crash).
+"Performance"): per event only lookups, additions and appending a struct to a list (no text, no disk, no
+allocation); the match records are formatted and written by a background thread once a second; only agents the
+game hands over are read (on the Linux server a null or freed access is a native crash). An error stops
+recording for that match (logged) and never reaches the game.
 
 ## Build and deploy
 

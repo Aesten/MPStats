@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using NetworkMessages.FromServer;
 using TaleWorlds.Core;
 using TaleWorlds.MountAndBlade;
 
@@ -56,10 +55,13 @@ internal sealed class GroupfightRoundStats : MissionLogic
         _reportPending = false;
     }
 
-    // Sent from the next tick rather than from inside the round controller's state change.
+    // Sent from the next tick rather than from inside the round controller's state change. Not when the mission is
+    // being ended (!setmap, !resetmap...): MPManager zeroes the mission timer, which the round controller shares,
+    // so it ends the round in progress as if its time were up.
     private void OnRoundEnding()
     {
-        _reportPending = true;
+        _reportPending = Mission.GetMissionBehavior<MissionLobbyComponent>()?.CurrentMultiplayerState
+            != MissionLobbyComponent.MultiplayerGameState.Ending;
     }
 
     public override void OnAgentBuild(Agent agent, Banner banner)
@@ -128,30 +130,9 @@ internal sealed class GroupfightRoundStats : MissionLogic
         }
         foreach (string line in lines)
         {
-            MPStatsSubModule.Log(line);
-            Broadcast(line);
+            ServerChat.Broadcast(line);
         }
     }
 
     private static int Round(float value) => (int)System.Math.Round(value);
-
-    // Only from the main thread outside packet handling (a tick): sending from inside the server's packet handler
-    // crashes it.
-    private static void Broadcast(string text)
-    {
-        if (!GameNetwork.NetworkPeersValid)
-        {
-            return;
-        }
-        foreach (NetworkCommunicator peer in GameNetwork.NetworkPeers)
-        {
-            if (peer.IsServerPeer || !peer.IsSynchronized)
-            {
-                continue;
-            }
-            GameNetwork.BeginModuleEventAsServer(peer);
-            GameNetwork.WriteMessage(new ServerMessage(text));
-            GameNetwork.EndModuleEventAsServer();
-        }
-    }
 }

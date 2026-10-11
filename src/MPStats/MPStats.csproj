@@ -29,6 +29,7 @@
     <Reference Include="$(DSBin)\TaleWorlds.MountAndBlade.dll" Private="false" />
     <Reference Include="$(DSBin)\TaleWorlds.MountAndBlade.Multiplayer.dll" Private="false" />
     <Reference Include="$(DSBin)\TaleWorlds.ObjectSystem.dll" Private="false" />
+    <Reference Include="$(DSBin)\TaleWorlds.PlayerServices.dll" Private="false" />
   </ItemGroup>
 
   <!-- The server loads module DLLs from bin/<name of its working directory>, which is
