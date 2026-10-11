@@ -47,4 +47,4 @@ scripts/deploy.sh                     # build and install on the server (aesten@
 scripts/deploy.sh --restart           # and restart it
 ```
 
-mpManager's `run-server.sh` loads MPStats when it's installed (`--no-stats` to leave it out).
+`run-server.sh` (in the sibling mpServerConfig repo) loads MPStats when it's installed (`--no-stats` to leave it out).

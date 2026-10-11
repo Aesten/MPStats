@@ -6,7 +6,7 @@
 #   --restart   stop the running server (if any) and start it again, detached;
 #               options after -- go to run-server.sh, e.g. --restart -- --tickrate 60
 #
-# run-server.sh, which starts the server, is installed by mpManager's scripts/deploy.sh.
+# run-server.sh, which starts the server, is installed by mpServerConfig's deploy.sh.
 # MPS_HOST overrides the ssh target (default: aesten@7900x).
 
 set -euo pipefail
