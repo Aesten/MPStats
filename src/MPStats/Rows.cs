@@ -34,7 +34,7 @@ internal enum BlockKind : byte
 internal sealed class MatchInfo
 {
     public string Id;
-    public string GameType, Map, Culture1, Culture2, Server;
+    public string GameType, Map, Scene, Culture1, Culture2, Server;
     public int RoundTotal;
     public DateTime Start;
     public DateTime? End;

@@ -163,8 +163,8 @@ internal static class StatsWriter
     // Rewritten at the end with the end time and result.
     private static void WriteMatch(string dir, MatchInfo m)
     {
-        string text = "match,game_type,map,culture1,culture2,start,end,rounds_played,round_total,result,dropped,server\n"
-            + m.Id + "," + m.GameType + "," + m.Map + "," + m.Culture1 + "," + m.Culture2 + "," + Time(m.Start) + ","
+        string text = "match,game_type,map,scene,culture1,culture2,start,end,rounds_played,round_total,result,dropped,server\n"
+            + m.Id + "," + m.GameType + "," + m.Map + "," + m.Scene + "," + m.Culture1 + "," + m.Culture2 + "," + Time(m.Start) + ","
             + (m.End.HasValue ? Time(m.End.Value) : "") + "," + m.RoundsPlayed + "," + m.RoundTotal + "," + m.Result + ","
             + m.DroppedBatches + "," + Quote(m.Server) + "\n";
         File.WriteAllText(Path.Combine(dir, "match.csv"), text, new UTF8Encoding(false));

@@ -382,11 +382,15 @@ internal sealed class MatchRecorder : MissionLogic
 
     private void Open()
     {
+        string scene = MultiplayerOptions.OptionType.Map.GetStrValue();
+        string map = MapNames.Name(scene);
         _match = new MatchInfo
         {
-            Id = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture) + "-" + MultiplayerOptions.OptionType.Map.GetStrValue(),
+            // "20261012-203000-xauna-winter": ':' (map variants) isn't allowed in Windows paths.
+            Id = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture) + "-" + map.Replace(':', '-'),
             GameType = MultiplayerOptions.OptionType.GameType.GetStrValue(),
-            Map = MultiplayerOptions.OptionType.Map.GetStrValue(),
+            Map = map,
+            Scene = scene,
             Culture1 = MultiplayerOptions.OptionType.CultureTeam1.GetStrValue(),
             Culture2 = MultiplayerOptions.OptionType.CultureTeam2.GetStrValue(),
             Server = MultiplayerOptions.OptionType.ServerName.GetStrValue(),

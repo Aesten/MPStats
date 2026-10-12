@@ -31,7 +31,7 @@ One folder per match, in `MPS_DATA_DIR` (`~/bannerlord/stats/` on the server; wi
 `Modules/MPStats/data/`):
 
 ```
-stats/20261011-213000-mp_skirmish_map_007/
+stats/20261011-213000-xauna-winter/
   match.csv     players.csv   rounds.csv   spawns.csv   hits.csv   shots.csv   deaths.csv
 ```
 
@@ -44,9 +44,11 @@ Times are UTC (`2026-10-11T21:30:05.123`).
 
 | column | |
 |---|---|
-| `match` | folder name: start time and map |
+| `match` | folder name: start time (UTC) and map name, `:` written as `-` |
 | `game_type` | `Skirmish` / `Battle` |
-| `map`, `culture1`, `culture2` | attackers' and defenders' factions |
+| `map` | our name for it, the one typed in commands (`xauna:winter`; first alias in maps.txt) |
+| `scene` | the game's scene id (`mp_skirmish_map_007_winter`), kept as names in maps.txt can change |
+| `culture1`, `culture2` | attackers' and defenders' factions |
 | `start`, `end` | first round start; last round end (empty until the match closes) |
 | `rounds_played`, `round_total` | finished rounds (an aborted round isn't counted; it still has its row in `rounds.csv`), and the configured total |
 | `result` | `complete` (the game ended the match: all rounds, a team out of reach, or a team left), `aborted` (ended by an admin or MPManager: !setmap, !resetmap, !mode, !warmup, standby), `error` (the recorder hit an error and stopped; logged); empty if the server stopped mid-match |

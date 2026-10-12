@@ -7,7 +7,7 @@ namespace MPStats;
 
 // "!stats" (short: "!st"), open to everyone: what MPStats is doing right now, e.g.
 //
-//   [MPStats] Recording 20261011-213000-mp_bnl_lighthouse: round 3 in progress, 2 done | 6 players, 41 spawns,
+//   [MPStats] Recording 20261011-213000-lighthouse: round 3 in progress, 2 done | 6 players, 41 spawns,
 //             812 hits, 230 shots, 37 deaths
 //   [MPStats] Not recording yet: starts at the first round (warmup isn't recorded). Last match: ...
 //

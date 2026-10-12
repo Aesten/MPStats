@@ -24,7 +24,7 @@ are only sent to chat, not to the server log. Only Battle missions get the track
 ## Match records (Skirmish and Battle)
 
 Every Skirmish and Battle match (one mission) is recorded as raw events: spawns, hits (damaging or blocked),
-missiles shot, deaths and rounds, one CSV per table in a folder per match (`~/bannerlord/stats/<start>-<map>/`
+missiles shot, deaths and rounds, one CSV per table in a folder per match (`~/bannerlord/stats/<start>-<map name>/`
 on the server, `MPS_DATA_DIR`). Only real rounds count: warmup records nothing. No stats are computed on the
 server; scripts compute them from the records later, and the records are meant to be imported into a database.
 Players see one chat line when recording starts (first round) and one when the match's stats are saved.
@@ -36,8 +36,8 @@ Columns, how each way a match can end is recorded, and the safety rules: `docs/d
 `!stats` (or `!st`), open to everyone, answers privately with what MPStats is doing:
 
 ```
-[MPStats] Not recording yet: starts at the first round (warmup isn't recorded). Last match: 20261011-213000-mp_bnl_lighthouse: complete, 5 rounds, 1450 hits.
-[MPStats] Recording 20261011-221500-mp_bnl_quarry: round 3 in progress, 2 done | 6 players, 41 spawns, 812 hits, 230 shots, 37 deaths (+2 horses).
+[MPStats] Not recording yet: starts at the first round (warmup isn't recorded). Last match: 20261011-213000-lighthouse: complete, 5 rounds, 1450 hits.
+[MPStats] Recording 20261011-221500-quarry: round 3 in progress, 2 done | 6 players, 41 spawns, 812 hits, 230 shots, 37 deaths (+2 horses).
 [MPStats] Not recording: TeamDeathmatch isn't recorded (Skirmish and Battle only).
 [MPStats] Recording stopped after an error (see the server log).
 ```
