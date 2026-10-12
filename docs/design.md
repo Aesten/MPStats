@@ -32,7 +32,7 @@ One folder per match, in `MPS_DATA_DIR` (`~/bannerlord/stats/` on the server; wi
 
 ```
 stats/20261011-213000-xauna-winter/
-  match.csv     players.csv   rounds.csv   spawns.csv   hits.csv   shots.csv   deaths.csv
+  match.csv     players.csv   rounds.csv   spawns.csv   hits.csv   shots.csv   deaths.csv   scores.csv
 ```
 
 Unlike logs and metrics, stats are never deleted by the server: they are kept until imported.
@@ -119,9 +119,17 @@ the shooter's missile hits on agents / shots in the same round.
 ### deaths.csv: one row per human or horse death
 
 `time`, `round`, `victim` (spawn; for a horse, its rider's spawn or empty), `victim_kind`, `killer` (spawn,
-empty for falls and suicides), `state` (`killed` / `unconscious`), `attack` (`missile`, `kick`, `bash`, `fall`,
+empty for falls and suicides), `state` (`killed`, `unconscious`, `left` = disconnected, `team_switch` = switched
+teams: the game kills the character in both cases; the scoreboard counts a team switch as a death), `attack` (`missile`, `kick`, `bash`, `fall`,
 otherwise `other`: the killing hit's row in `hits.csv` has the details), `weapon_class`, `part`.
-Disconnects during a round are rows with `state` = `left`.
+
+
+### scores.csv: the game's scoreboard at each round's end
+
+`round`, `player`, `side`, `score`, `kills`, `deaths`, `assists`: one row per player on a team when the round ended,
+with the game's own values (`MissionPeer`), cumulative over the match as the scoreboard shows them. A player's
+score for one round is the difference with their previous row. Players who left before a round's end only have
+rows up to the last round they finished.
 
 ## Match and round boundaries
 

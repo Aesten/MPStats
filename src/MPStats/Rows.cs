@@ -22,6 +22,14 @@ internal enum AttackKind : byte
     Fall
 }
 
+internal enum DeathCause : byte
+{
+    Killed,
+    Unconscious,
+    Left,       // the player disconnected (or the agent was removed)
+    TeamSwitch  // the player switched teams; the scoreboard counts it as a death
+}
+
 internal enum BlockKind : byte
 {
     None,
@@ -98,10 +106,19 @@ internal struct DeathRow
     public DateTime Time;
     public int Round, Victim, Killer;
     public bool HorseVictim;
-    public AgentState State;
+    public DeathCause Cause;
     public AttackKind Attack;
     public WeaponClass WeaponClass;
     public BoneBodyPartType Part;
+}
+
+// The game's scoreboard for one player at a round's end (cumulative over the match, as the scoreboard shows it).
+internal struct ScoreRow
+{
+    public int Round;
+    public string Player;
+    public BattleSideEnum Side;
+    public int Score, Kills, Deaths, Assists;
 }
 
 // What the main thread hands to the writer at once: rows collected since the last hand-over, and whether the
@@ -116,7 +133,8 @@ internal sealed class Batch
     public readonly List<HitRow> Hits = new List<HitRow>();
     public readonly List<ShotRow> Shots = new List<ShotRow>();
     public readonly List<DeathRow> Deaths = new List<DeathRow>();
+    public readonly List<ScoreRow> Scores = new List<ScoreRow>();
 
     public bool IsEmpty => !Open && !Close && Players.Count == 0 && Rounds.Count == 0 && Spawns.Count == 0
-        && Hits.Count == 0 && Shots.Count == 0 && Deaths.Count == 0;
+        && Hits.Count == 0 && Shots.Count == 0 && Deaths.Count == 0 && Scores.Count == 0;
 }

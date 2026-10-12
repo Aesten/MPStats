@@ -29,9 +29,9 @@ internal static class StatsWriter
     private sealed class MatchFiles
     {
         public string Dir;
-        public StreamWriter Players, Rounds, Spawns, Hits, Shots, Deaths;
+        public StreamWriter Players, Rounds, Spawns, Hits, Shots, Deaths, Scores;
 
-        public IEnumerable<StreamWriter> All => new[] { Players, Rounds, Spawns, Hits, Shots, Deaths };
+        public IEnumerable<StreamWriter> All => new[] { Players, Rounds, Spawns, Hits, Shots, Deaths, Scores };
     }
 
     public static string Directory
@@ -88,6 +88,7 @@ internal static class StatsWriter
                 Hits = Create(dir, "hits.csv", "time,round,attacker,victim,victim_kind,team,attack,damage_type,weapon,weapon_class,part,block,hp,raw,attacker_mounted,victim_mounted,attacker_speed,victim_speed,distance,kill"),
                 Shots = Create(dir, "shots.csv", "time,round,shooter,weapon,weapon_class,mounted,speed"),
                 Deaths = Create(dir, "deaths.csv", "time,round,victim,victim_kind,killer,state,attack,weapon_class,part"),
+                Scores = Create(dir, "scores.csv", "round,player,side,score,kills,deaths,assists"),
             };
             WriteMatch(dir, match);
             MPStatsSubModule.Log("Recording match " + match.Id + " to " + dir + ".");
@@ -135,11 +136,17 @@ internal static class StatsWriter
                 .Append(',').Append(r.Mounted ? 1 : 0).Append(',').Append(F(r.Speed));
             files.Shots.WriteLine(line.ToString());
         }
+        foreach (ScoreRow r in batch.Scores)
+        {
+            line.Clear().Append(r.Round).Append(',').Append(Quote(r.Player)).Append(',').Append(Side(r.Side))
+                .Append(',').Append(r.Score).Append(',').Append(r.Kills).Append(',').Append(r.Deaths).Append(',').Append(r.Assists);
+            files.Scores.WriteLine(line.ToString());
+        }
         foreach (DeathRow r in batch.Deaths)
         {
             line.Clear().Append(Time(r.Time)).Append(',').Append(r.Round).Append(',').Append(Spawn(r.Victim))
                 .Append(',').Append(r.HorseVictim ? "horse" : "human").Append(',').Append(Spawn(r.Killer))
-                .Append(',').Append(State(r.State)).Append(',').Append(Attack(r.Attack))
+                .Append(',').Append(State(r.Cause)).Append(',').Append(Attack(r.Attack))
                 .Append(',').Append(WeaponClassName(r.WeaponClass)).Append(',').Append(Part(r.Part));
             files.Deaths.WriteLine(line.ToString());
         }
@@ -211,12 +218,13 @@ internal static class StatsWriter
 
     private static string WeaponClassName(WeaponClass weaponClass) => weaponClass == WeaponClass.Undefined ? "" : weaponClass.ToString();
 
-    private static string State(AgentState state) => state switch
+    private static string State(DeathCause cause) => cause switch
     {
-        AgentState.Killed => "killed",
-        AgentState.Unconscious => "unconscious",
-        AgentState.Deleted => "left",
-        _ => state.ToString().ToLowerInvariant(),
+        DeathCause.Killed => "killed",
+        DeathCause.Unconscious => "unconscious",
+        DeathCause.Left => "left",
+        DeathCause.TeamSwitch => "team_switch",
+        _ => "",
     };
 
     private static string Part(BoneBodyPartType part) => part switch

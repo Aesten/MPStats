@@ -1,4 +1,5 @@
 dist/
+reports/
 src/**/bin/
 src/**/obj/
 *.user

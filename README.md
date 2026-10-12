@@ -46,6 +46,21 @@ With MPManager on the server it's routed through it (`MPManagerLink.cs`, as in m
 listed in `!help`, and `mpm cmd stats` works from the server. Without MPManager, MPStats hooks chat itself (the
 command then still shows in chat).
 
+## Session report
+
+`scripts/session-report.py` turns a session's files into a Markdown report: server performance per match, each
+player's connection (spectators included), pierce damage compared with vanilla (from MPBalancer's hit log), and
+player performance (KDA with the game's assist rule, damage per round, first deaths, damage to horses, ranged,
+cavalry, infantry dealt vs taken, team hits). Usage in the script's header; reports go in `reports/`.
+`scripts/match-report.py <match folders, or a folder of them>... -o reports/<date>-matches.md` writes player
+performance per match (all its rounds), for one or more matches in a single document: per match a summary (score,
+round results, fighting time) and a table per team, one row per player (rounds, lives as infantry/cavalry/archers,
+K/A/D and KDA, damage dealt and per round, taken, horse and team damage, the game's score, first kills/deaths,
+rounds survived) and a team total. Rendered, each match is on its own page.
+
+`scripts/render-report.py reports/<date>.md` turns a report into a shareable A4 landscape PDF (printed by Edge or
+Chrome) whose tables fit the page; `--keep-html` also keeps the self-contained HTML page it prints from.
+
 ## Performance
 
 Stats code runs on the server's main thread for every hit, so it follows mpManager's rules (`docs/roadmap.md`,

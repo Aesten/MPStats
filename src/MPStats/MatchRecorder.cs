@@ -194,6 +194,7 @@ internal sealed class MatchRecorder : MissionLogic
                 _match.RoundsPlayed++;
             }
             _lastRoundAborted = aborted;
+            RecordScores();
             Flush();
         }
         catch (Exception e)
@@ -347,12 +348,20 @@ internal sealed class MatchRecorder : MissionLogic
         {
             Agent killer = affectorAgent != null && affectorAgent.IsMount ? affectorAgent.RiderAgent : affectorAgent;
             bool horseVictim = affectedAgent.IsMount;
+            // The game kills a player's character itself, with a blow of no damage type, when the player disconnects
+            // (MissionNetworkComponent.HandlePlayerDisconnect) or switches teams (MultiplayerTeamSelectComponent,
+            // marked KillInfo.TeamSwitch).
+            DeathCause cause = agentState == AgentState.Deleted ? DeathCause.Left
+                : !horseVictim && blow.IsValid && blow.DamageType == DamageTypes.Invalid
+                    ? (blow.OverrideKillInfo == Agent.KillInfo.TeamSwitch ? DeathCause.TeamSwitch : DeathCause.Left)
+                : agentState == AgentState.Unconscious ? DeathCause.Unconscious
+                : DeathCause.Killed;
             // Counted like the scoreboard: players killed (not leaving), horses apart.
-            if (affectedAgent.IsMount)
+            if (horseVictim)
             {
                 _horseDeathCount++;
             }
-            else if (agentState != AgentState.Deleted)
+            else if (cause != DeathCause.Left)
             {
                 _deathCount++;
             }
@@ -363,7 +372,7 @@ internal sealed class MatchRecorder : MissionLogic
                 Victim = horseVictim ? HorseOwner(affectedAgent) : SpawnOf(affectedAgent),
                 HorseVictim = horseVictim,
                 Killer = killer == affectedAgent ? 0 : SpawnOf(killer),
-                State = agentState,
+                Cause = cause,
                 Attack = !blow.IsValid ? AttackKind.Other
                     : blow.IsMissile ? AttackKind.Missile
                     : blow.AttackType == AgentAttackType.Kick ? AttackKind.Kick
@@ -457,6 +466,35 @@ internal sealed class MatchRecorder : MissionLogic
             {
                 // Already logged; nothing more to save.
             }
+        }
+    }
+
+    // The scoreboard at the round's end, for every player on a team (the game's own score, kills, deaths and
+    // assists, cumulative over the match). Once per round: no cost during play.
+    private void RecordScores()
+    {
+        if (!GameNetwork.NetworkPeersValid)
+        {
+            return;
+        }
+        foreach (NetworkCommunicator peer in GameNetwork.NetworkPeers)
+        {
+            MissionPeer missionPeer = peer.IsServerPeer ? null : peer.GetComponent<MissionPeer>();
+            BattleSideEnum side = missionPeer?.Team?.Side ?? BattleSideEnum.None;
+            if (side != BattleSideEnum.Attacker && side != BattleSideEnum.Defender)
+            {
+                continue;
+            }
+            _batch.Scores.Add(new ScoreRow
+            {
+                Round = _round,
+                Player = PlayerId(missionPeer),
+                Side = side,
+                Score = missionPeer.Score,
+                Kills = missionPeer.KillCount,
+                Deaths = missionPeer.DeathCount,
+                Assists = missionPeer.AssistCount,
+            });
         }
     }
 
