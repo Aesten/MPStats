@@ -175,7 +175,7 @@ def main():
                     [(r["time"][11:19], r["state"], r["players"], r["tick_max_ms"], r["late_pct"]) for r in spikes],
                     ["l", "l", "r", "r", "r"]))
             w("")
-            w("`none`/`waitingfirstplayers` = between missions or loading a map; `playing` = during a match.")
+            w("`standby` = empty, nothing loaded; `intermission` = between missions; `warmup`/`warmup_ending` = warmup; `playing` = during a match; `ending` = match over. (Before 15 October: `none`/`waitingfirstplayers` = between missions or loading a map, `playing` included warmup.)")
             w("")
     else:
         w("No server metrics given.")
