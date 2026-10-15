@@ -24,7 +24,7 @@ are only sent to chat, not to the server log. Only Battle missions get the track
 ## Match records (Skirmish and Battle)
 
 Every Skirmish and Battle match (one mission) is recorded as raw events: spawns, hits (damaging or blocked),
-missiles shot, deaths and rounds, one CSV per table in a folder per match (`~/bannerlord/stats/<start>-<map name>/`
+missiles shot, deaths and rounds, one CSV per table in a folder per match (`~/bannerlord/instances/<id>/stats/<start>-<map name>/`
 on the server, `MPS_DATA_DIR`). Only real rounds count: warmup records nothing. No stats are computed on the
 server; scripts compute them from the records later, and the records are meant to be imported into a database.
 Players see one chat line when recording starts (first round) and one when the match's stats are saved.
@@ -42,8 +42,9 @@ Columns, how each way a match can end is recorded, and the safety rules: `docs/d
 [MPStats] Recording stopped after an error (see the server log).
 ```
 
-With MPManager on the server it's routed through it (`MPManagerLink.cs`, as in mpBalancer): hidden from chat,
-listed in `!help`, and `mpm cmd stats` works from the server. Without MPManager, MPStats hooks chat itself (the
+With MPManager on the server it's routed through it (mpManager's shared `link/MPManagerLink.cs`, compiled in, as
+in mpBalancer): hidden from chat, listed in `!help`, the server's permissions file decides who may use it, and
+`mpm cmd stats` works from the server. Without MPManager, MPStats hooks chat itself (the
 command then still shows in chat).
 
 ## Session report
@@ -73,7 +74,7 @@ recording for that match (logged) and never reaches the game.
 
 ```sh
 dotnet build src/MPStats -c Release   # into dist/Modules/MPStats
-scripts/deploy.sh                     # build and install on the server (aesten@7900x)
+scripts/deploy.sh                     # build and install on the server (bannerlord@7900x)
 scripts/deploy.sh --restart           # and restart it
 ```
 

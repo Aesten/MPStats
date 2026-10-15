@@ -10,7 +10,7 @@ Inputs (copied from the server first):
 
 Usage:
   mkdir session && cd session
-  ssh aesten@7900x 'cd ~/bannerlord && tar -cf - stats/20261012-* metrics/*-20261012-*.csv' | tar -xf -
+  ssh bannerlord@7900x 'cd ~/bannerlord/instances/0 && tar -cf - stats/20261012-* metrics/*-20261012-*.csv' | tar -xf -
   python path/to/session-report.py . > report.md
 
 Options: --title "..." (default: the session's date).

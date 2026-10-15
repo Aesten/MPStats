@@ -3,18 +3,18 @@
 #
 # Usage: scripts/deploy.sh [--no-build] [--restart [-- <run-server.sh options>]]
 #   --no-build  copy the existing dist/ output without rebuilding
-#   --restart   stop the running server (if any) and start it again, detached;
+#   --restart   restart the test server (instance 0, through its service: mpm 0 restart);
 #               options after -- go to run-server.sh, e.g. --restart -- --tickrate 60
 #
 # run-server.sh, which starts the server, is installed by mpServerConfig's deploy.sh.
-# MPS_HOST overrides the ssh target (default: aesten@7900x).
+# MPS_HOST overrides the ssh target (default: bannerlord@7900x).
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-HOST="${MPS_HOST:-aesten@7900x}"
+HOST="${MPS_HOST:-bannerlord@7900x}"
 # Remote paths, relative to the remote home directory.
 REMOTE_DS="Steam/steamapps/common/Mount & Blade II Dedicated Server"
 REMOTE_SCRIPTS="bannerlord"
@@ -49,5 +49,5 @@ if [ "$RESTART" = 1 ]; then
   # %q-quote the pass-through options so they survive the remote shell.
   QUOTED_ARGS=""
   [ ${#SERVER_ARGS[@]} -gt 0 ] && QUOTED_ARGS="$(printf ' %q' "${SERVER_ARGS[@]}")"
-  ssh "$HOST" "\"\$HOME/$REMOTE_SCRIPTS/run-server.sh\" --stop && \"\$HOME/$REMOTE_SCRIPTS/run-server.sh\" -d$QUOTED_ARGS"
+  ssh "$HOST" "\"\$HOME/$REMOTE_SCRIPTS/mpm\" 0 restart$QUOTED_ARGS"
 fi

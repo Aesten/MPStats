@@ -27,7 +27,7 @@ session was 37 KB gzipped.
 
 ## Files
 
-One folder per match, in `MPS_DATA_DIR` (`~/bannerlord/stats/` on the server; without it,
+One folder per match, in `MPS_DATA_DIR` (`~/bannerlord/instances/<id>/stats/` on the server; without it,
 `Modules/MPStats/data/`):
 
 ```

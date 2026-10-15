@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using TaleWorlds.Core;
+using MPManagerLinking;
 using TaleWorlds.MountAndBlade;
 
 namespace MPStats;

@@ -12,12 +12,20 @@
     <DSDir Condition="'$(DSDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Mount &amp; Blade II Dedicated Server</DSDir>
     <DSBin>$(DSDir)\bin\Win64_Shipping_Server</DSBin>
 
+    <!-- The mpManager checkout, for the shared MPManagerLink.cs. Override with: dotnet build -p:MPManagerDir="..." -->
+    <MPManagerDir Condition="'$(MPManagerDir)' == ''">$(MSBuildThisFileDirectory)..\..\..\mpManager</MPManagerDir>
+
     <!-- Build straight into the module layout the server expects. -->
     <ModuleDir>$(MSBuildThisFileDirectory)..\..\dist\Modules\MPStats\</ModuleDir>
     <OutputPath>$(ModuleDir)bin\Win64_Shipping_Server\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <GenerateDependencyFile>false</GenerateDependencyFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- One copy for every mod: routes chat commands and permissions through MPManager when it's there. -->
+    <Compile Include="$(MPManagerDir)\link\MPManagerLink.cs" Link="MPManagerLink.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="$(DSBin)\TaleWorlds.Core.dll" Private="false" />
